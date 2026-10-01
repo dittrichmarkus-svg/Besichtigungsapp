@@ -3,137 +3,114 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a84ff">
-<title>Besichtigungen</title>
+<meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
+<title>BesichtigungsApp</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;background:#f5f7fb;color:#111827}
-header{background:#0a84ff;color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 16px;position:sticky;top:0;z-index:5}
-h1{font-size:28px;margin:0 0 12px}.sub{opacity:.85;font-size:14px}
-main{padding:16px 16px 90px;max-width:760px;margin:auto}.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 12px #0000000d}
-label{display:block;font-size:13px;font-weight:600;margin:13px 0 6px;color:#4b5563}
-input,select,textarea,button{font:inherit}input,select,textarea{width:100%;border:1px solid #d7dce5;border-radius:11px;padding:12px;background:#fff;font-size:16px}textarea{min-height:90px;resize:vertical}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{grid-template-columns:1fr 1fr 1fr}
-button{border:0;border-radius:12px;padding:12px 15px;font-weight:700;cursor:pointer}.primary{background:#0a84ff;color:#fff}.secondary{background:#eef5ff;color:#0868d6}.danger{background:#fff0f0;color:#d00}.mic{background:#ff3b30;color:#fff;width:100%}
-.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:9px 8px calc(9px + env(safe-area-inset-bottom));z-index:10}.tabs button{background:none;color:#667085;padding:7px 10px}.tabs button.active{color:#0a84ff}
-.hidden{display:none}.item{padding:14px 0;border-bottom:1px solid #eee}.item:last-child{border:0}.muted{color:#667085;font-size:13px}.total{font-size:24px;font-weight:800;color:#0a84ff}.rategrid{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;margin:8px 0}.calc{display:flex;justify-content:space-between;margin:8px 0}.photoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.photoGrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
-h2{font-size:19px;margin:4px 0 12px}.pill{display:inline-block;background:#eef5ff;color:#0868d6;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f3f4f6}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:760px;margin:auto;padding:16px 14px 40px}
+h1{font-size:28px;margin:8px 0 4px}h2{font-size:21px;margin:0 0 12px}h3{margin:18px 0 8px}.muted{color:#6b7280;font-size:14px}
+.card{background:white;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0000000d}
+button{border:0;border-radius:12px;padding:12px 14px;font-weight:700;font-size:15px;cursor:pointer}
+.primary{background:#111827;color:white}.secondary{background:#e5e7eb}.danger{background:#fee2e2;color:#991b1b}.small{padding:9px 11px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+label{display:block;font-size:13px;font-weight:700;margin:9px 0 4px}input,select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;background:white}textarea{min-height:90px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.spacer{flex:1}.hidden{display:none}.photoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.photoGrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.item{border:1px solid #e5e7eb;border-radius:13px;padding:12px;margin:8px 0}.item strong{display:block}.pill{display:inline-block;background:#eef2ff;padding:5px 8px;border-radius:999px;font-size:12px;margin:3px 3px 0 0}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}.topbar button{padding:8px 11px}
+.total{font-size:22px;font-weight:800}.nav{position:sticky;bottom:10px;background:#ffffffee;backdrop-filter:blur(10px);border:1px solid #ddd;border-radius:16px;padding:8px;display:flex;gap:6px;margin-top:18px}.nav button{flex:1}
+@media(max-width:500px){.grid3{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header><h1 id="title">Besichtigungen</h1><div class="sub">KFZ-Sachverständiger • offline nutzbar</div></header>
-<main>
-<section id="home">
-  <button class="primary" style="width:100%;font-size:17px" onclick="newInspection()">＋ Neue Besichtigung</button>
-  <div class="card"><h2>Letzte Besichtigungen</h2><div id="list"></div></div>
-</section>
-
-<section id="workshops" class="hidden">
- <div class="card"><h2>Werkstätten</h2><div id="workshopList"></div></div>
- <div class="card"><h2>Werkstatt anlegen</h2>
-  <label>Name</label><input id="wName" placeholder="z. B. Autohaus Müller">
-  <label>Adresse</label><input id="wAddress" placeholder="Straße, PLZ Ort">
-  <div class="rategrid"><span>Spengler €/h</span><input id="rSp" type="number" value="155"></div>
-  <div class="rategrid"><span>Lackierer €/h</span><input id="rLa" type="number" value="165"></div>
-  <div class="rategrid"><span>Mechanik €/h</span><input id="rMe" type="number" value="145"></div>
-  <button class="primary" style="width:100%" onclick="saveWorkshop()">Werkstatt speichern</button>
- </div>
-</section>
-
-<section id="editor" class="hidden">
- <div class="card">
-  <h2>Neue Besichtigung</h2>
-  <label>Werkstatt</label><select id="eWorkshop"></select>
-  <label>Datum & Uhrzeit</label><div class="row"><input id="eDate" type="date"><input id="eTime" type="time"></div>
-  <label>Kennzeichen</label><input id="ePlate" placeholder="z. B. W 12345">
-  <div class="row"><div><label>Marke</label><input id="eMake" placeholder="Audi"></div><div><label>Modell</label><input id="eModel" placeholder="A4"></div></div>
-  <label>Baujahr</label><input id="eYear" type="number" placeholder="2020">
-  <label>Schadensart</label><select id="eDamage"><option>Unfallschaden</option><option>Kasko</option><option>Hagelschaden</option><option>Vandalismus</option><option>Glasschaden</option><option>Sonstiges</option></select>
- </div>
- <div class="card"><h2>Arbeitszeit / Aufwand</h2>
-  <div class="rategrid"><span>Spengler (h)</span><input id="hSp" type="number" step="0.1" value="0" oninput="calc()"></div>
-  <div class="rategrid"><span>Lackierer (h)</span><input id="hLa" type="number" step="0.1" value="0" oninput="calc()"></div>
-  <div class="rategrid"><span>Mechanik (h)</span><input id="hMe" type="number" step="0.1" value="0" oninput="calc()"></div>
-  <div id="calcBox"></div>
- </div>
- <div class="card"><h2>Notizen</h2><textarea id="eNotes" placeholder="Anmerkungen zum Schaden..."></textarea>
-  <button class="mic" onclick="startSpeech()">🎙️ Spracheingabe starten</button>
-  <div class="muted" id="speechStatus" style="margin-top:8px"></div>
- </div>
- <div class="card"><h2>Fotos</h2><input id="photos" type="file" accept="image/*" capture="environment" multiple onchange="previewPhotos()"><div id="photoGrid" class="photoGrid" style="margin-top:10px"></div></div>
- <button class="primary" style="width:100%;font-size:17px" onclick="saveInspection()">Besichtigung speichern</button>
- <button class="danger" style="width:100%;margin-top:10px" onclick="show('home')">Abbrechen</button>
-</section>
-</main>
-
-<nav class="tabs">
-<button id="tabHome" class="active" onclick="show('home')">📋<br>Besichtigungen</button>
-<button id="tabWork" onclick="show('workshops')">🏢<br>Werkstätten</button>
-</nav>
-
+<div class="wrap">
+<div id="app"></div>
+<div class="nav">
+<button class="secondary" onclick="home()">🏠 Start</button>
+<button class="secondary" onclick="listInspections()">📋 Besichtigungen</button>
+<button class="secondary" onclick="listWorkshops()">🏭 Werkstätten</button>
+</div>
+</div>
 <script>
-const K='besichtigungsapp_v1';
-let data=JSON.parse(localStorage.getItem(K)||'{"workshops":[],"inspections":[]}');
+const KEY="besichtigungsapp_v2";
+let db=JSON.parse(localStorage.getItem(KEY)||'{"workshops":[],"inspections":[]}');
 let currentPhotos=[];
-function save(){localStorage.setItem(K,JSON.stringify(data))}
-function show(id){
- document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
- document.getElementById(id).classList.remove('hidden');
- document.getElementById('tabHome').classList.toggle('active',id==='home');
- document.getElementById('tabWork').classList.toggle('active',id==='workshops');
- if(id==='home') renderList(); if(id==='workshops') renderWorkshops();
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function home(){
+app.innerHTML=`<h1>BesichtigungsApp</h1><div class="muted">Deine digitale Besichtigungsakte</div>
+<div class="card"><h2>🚗 Neue Besichtigung</h2><p class="muted">Fahrzeug, Schaden, Reifen, Fotos, Arbeitszeit und Notizen erfassen.</p><button class="primary" onclick="editInspection()">➕ Neue Besichtigung</button></div>
+<div class="card"><h2>📋 Gespeicherte Besichtigungen</h2><div class="total">${db.inspections.length}</div><div class="muted">Besichtigungen gespeichert</div><br><button class="secondary" onclick="listInspections()">Ansehen & bearbeiten</button></div>
+<div class="card"><h2>🏭 Werkstätten</h2><div class="muted">${db.workshops.length} Werkstätten gespeichert</div><br><button class="secondary" onclick="listWorkshops()">Werkstätten verwalten</button></div>`;
 }
-function renderList(){
- const el=document.getElementById('list');
- if(!data.inspections.length){el.innerHTML='<div class="muted">Noch keine Besichtigungen angelegt.</div>';return}
- el.innerHTML=data.inspections.slice().reverse().map((x,i)=>`<div class="item"><b>${esc(x.workshop)}</b> <span class="pill">${esc(x.damage)}</span><br><span class="muted">${esc(x.date)} • ${esc(x.time)} • ${esc(x.plate||'')}</span><br><b>${money(x.total)}</b></div>`).join('')
+function listWorkshops(){
+app.innerHTML=`<div class="topbar"><h2>🏭 Werkstätten</h2><div class="spacer"></div><button class="primary small" onclick="editWorkshop()">➕ Neu</button></div>
+${db.workshops.length?db.workshops.map((w,i)=>`<div class="item"><strong>${esc(w.name)}</strong><div class="muted">${esc(w.address||'')}${w.email?' · ✉️ '+esc(w.email):''}</div><div class="row" style="margin-top:8px"><button class="secondary small" onclick="editWorkshop(${i})">✏️ Bearbeiten</button><button class="danger small" onclick="deleteWorkshop(${i})">🗑️ Löschen</button></div></div>`).join(''):'<div class="card muted">Noch keine Werkstatt angelegt.</div>'}`;
 }
-function renderWorkshops(){
- const el=document.getElementById('workshopList');
- if(!data.workshops.length){el.innerHTML='<div class="muted">Noch keine Werkstätten gespeichert.</div>';return}
- el.innerHTML=data.workshops.map((w,i)=>`<div class="item"><b>${esc(w.name)}</b><br><span class="muted">${esc(w.address||'')}</span><br>Spengler ${money(w.sp)} €/h • Lackierer ${money(w.la)} €/h • Mechanik ${money(w.me)} €/h</div>`).join('')
+function editWorkshop(i=null){
+let w=i==null?{}:db.workshops[i];
+app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listWorkshops()">←</button><h2>${i==null?'Neue Werkstatt':'Werkstatt bearbeiten'}</h2></div>
+<div class="card"><label>Werkstattname</label><input id="wn" value="${esc(w.name)}"><label>Ansprechpartner</label><input id="wp" value="${esc(w.contact)}"><label>Adresse</label><input id="wa" value="${esc(w.address)}"><label>Telefon</label><input id="wt" value="${esc(w.phone)}"><label>E-Mail</label><input id="we" type="email" value="${esc(w.email)}">
+<h3>Stundensätze</h3><div class="grid3"><div><label>Spengler €</label><input id="ws" type="number" step=".01" value="${w.spengler??''}"></div><div><label>Lackierer €</label><input id="wl" type="number" step=".01" value="${w.lackierer??''}"></div><div><label>Mechanik €</label><input id="wm" type="number" step=".01" value="${w.mechanik??''}"></div></div>
+<br><button class="primary" onclick="saveWorkshop(${i==null?'null':i})">💾 Speichern</button></div>`;
 }
-function saveWorkshop(){
- const name=document.getElementById('wName').value.trim(); if(!name){alert('Bitte Werkstattname eingeben.');return}
- data.workshops.push({name,address:document.getElementById('wAddress').value,sp:+rSp.value||0,la:+rLa.value||0,me:+rMe.value||0});
- save(); ['wName','wAddress'].forEach(id=>document.getElementById(id).value=''); renderWorkshops(); alert('Werkstatt gespeichert.');
+function saveWorkshop(i){
+let w={name:wn.value.trim(),contact:wp.value.trim(),address:wa.value.trim(),phone:wt.value.trim(),email:we.value.trim(),spengler:+ws.value||0,lackierer:+wl.value||0,mechanik:+wm.value||0};
+if(!w.name){alert("Bitte Werkstattname eingeben.");return} if(i===null) db.workshops.push(w); else db.workshops[i]=w; save(); listWorkshops();
 }
-function newInspection(){
- if(!data.workshops.length){show('workshops');alert('Bitte zuerst eine Werkstatt anlegen.');return}
- const now=new Date(); eDate.value=now.toISOString().slice(0,10); eTime.value=now.toTimeString().slice(0,5);
- eWorkshop.innerHTML=data.workshops.map((w,i)=>`<option value="${i}">${esc(w.name)}</option>`).join('');
- ['ePlate','eMake','eModel','eYear','eNotes'].forEach(id=>document.getElementById(id).value='');
- ['hSp','hLa','hMe'].forEach(id=>document.getElementById(id).value=0); currentPhotos=[]; photoGrid.innerHTML='';calc();show('editor');
+function deleteWorkshop(i){if(confirm("Werkstatt wirklich löschen?")){db.workshops.splice(i,1);save();listWorkshops()}}
+function listInspections(){
+app.innerHTML=`<div class="topbar"><h2>📋 Meine Besichtigungen</h2><div class="spacer"></div><button class="primary small" onclick="editInspection()">➕ Neu</button></div>
+<div class="card"><input id="search" placeholder="🔍 Kennzeichen, Werkstatt, Fahrzeug..." oninput="renderInspections()"></div><div id="ilist"></div>`;renderInspections();
 }
-function calc(){
- const w=data.workshops[+eWorkshop.value||0]||{sp:0,la:0,me:0};
- const a=(+hSp.value||0)*w.sp,b=(+hLa.value||0)*w.la,c=(+hMe.value||0)*w.me,t=a+b+c;
- calcBox.innerHTML=`<div class="calc"><span>Spengler</span><b>${money(a)} €</b></div><div class="calc"><span>Lackierer</span><b>${money(b)} €</b></div><div class="calc"><span>Mechanik</span><b>${money(c)} €</b></div><hr><div class="calc"><span class="total">Gesamt</span><span class="total">${money(t)} €</span></div>`;
+function renderInspections(){
+let q=(document.getElementById('search')?.value||'').toLowerCase();
+let arr=db.inspections.map((x,i)=>({...x,_i:i})).filter(x=>(`${x.plate} ${x.make} ${x.model} ${x.workshopName} ${x.damage}`.toLowerCase().includes(q))).reverse();
+ilist.innerHTML=arr.length?arr.map(x=>`<div class="item"><strong>${esc(x.make)} ${esc(x.model)} – ${esc(x.plate)}</strong><div class="muted">🏭 ${esc(x.workshopName||'—')} · 📅 ${esc(x.datetime||'—')}</div><span class="pill">${esc(x.damage||'Schaden nicht angegeben')}</span><span class="pill">📷 ${(x.photos||[]).length}</span>
+<div class="row" style="margin-top:9px"><button class="secondary small" onclick="viewInspection(${x._i})">👁️ Ansehen</button><button class="secondary small" onclick="editInspection(${x._i})">✏️ Bearbeiten</button><button class="danger small" onclick="deleteInspection(${x._i})">🗑️ Löschen</button></div></div>`).join(''):'<div class="card muted">Keine Besichtigungen gefunden.</div>';
 }
-eWorkshop.addEventListener('change',calc);
-function previewPhotos(){
- currentPhotos=[];photoGrid.innerHTML='';
- [...photos.files].forEach(f=>{const r=new FileReader();r.onload=()=>{currentPhotos.push(r.result);photoGrid.innerHTML+=`<img src="${r.result}">`};r.readAsDataURL(f)})
+function deleteInspection(i){if(confirm("Besichtigung inklusive Fotos wirklich löschen?")){db.inspections.splice(i,1);save();listInspections()}}
+function editInspection(i=null){
+let x=i==null?{}:db.inspections[i];currentPhotos=[...(x.photos||[])];
+let options='<option value="">Werkstatt auswählen</option>'+db.workshops.map((w,j)=>`<option value="${j}" ${String(x.workshopIndex)===String(j)?'selected':''}>${esc(w.name)}</option>`).join('');
+app.innerHTML=`<div class="topbar"><button class="secondary" onclick="${i==null?'home()':'listInspections()'}">←</button><h2>${i==null?'Neue Besichtigung':'Besichtigung bearbeiten'}</h2></div>
+<div class="card"><h3>🏭 Werkstatt</h3><select id="wi" onchange="fillRates()">${options}</select><div id="winfo" class="muted" style="margin-top:7px"></div>
+<h3>🚗 Fahrzeug</h3><div class="grid"><div><label>Kennzeichen</label><input id="plate" value="${esc(x.plate)}"></div><div><label>Marke</label><input id="make" value="${esc(x.make)}"></div><div><label>Modell</label><input id="model" value="${esc(x.model)}"></div><div><label>Baujahr</label><input id="year" type="number" value="${esc(x.year)}"></div><div><label>FIN</label><input id="vin" value="${esc(x.vin)}"></div><div><label>Kilometerstand</label><input id="km" type="number" value="${esc(x.km)}"></div><div><label>Tankfüllstand %</label><input id="fuel" type="number" min="0" max="100" value="${esc(x.fuel)}"></div><div><label>Datum & Uhrzeit</label><input id="datetime" type="datetime-local" value="${esc(x.datetime||new Date().toISOString().slice(0,16))}"></div></div>
+<h3>⚠️ Schaden</h3><label>Schadensart</label><select id="damage"><option value="">Bitte auswählen</option>${['Kollision','Parkschaden','Hagelschaden','Vandalismus','Wildschaden','Glasbruch','Elementarschaden','Sonstiger Schaden'].map(v=>`<option ${x.damage===v?'selected':''}>${v}</option>`).join('')}</select><label>Schadensbeschreibung</label><textarea id="desc">${esc(x.desc)}</textarea><button class="secondary" onclick="speak('desc')">🎤 Spracheingabe</button>
+<h3>🛞 Reifen</h3><div class="grid"><div><label>VL Profiltiefe mm</label><input id="tvl" type="number" step=".1" value="${esc(x.tvl)}"></div><div><label>VR Profiltiefe mm</label><input id="tvr" type="number" step=".1" value="${esc(x.tvr)}"></div><div><label>HL Profiltiefe mm</label><input id="thl" type="number" step=".1" value="${esc(x.thl)}"></div><div><label>HR Profiltiefe mm</label><input id="thr" type="number" step=".1" value="${esc(x.thr)}"></div><div><label>Reifengröße</label><input id="tsize" value="${esc(x.tsize)}"></div><div><label>Sommer/Winter/Ganzjahr</label><select id="tseason"><option value="">—</option>${['Sommer','Winter','Ganzjahr'].map(v=>`<option ${x.tseason===v?'selected':''}>${v}</option>`).join('')}</select></div><div><label>Reifenmarke</label><input id="tbrand" value="${esc(x.tbrand)}"></div><div><label>DOT</label><input id="tdot" value="${esc(x.tdot)}"></div></div><label>Reifen-/Felgenschäden</label><input id="tissues" value="${esc(x.tissues)}">
+<h3>🔧 Arbeitszeit & Kosten</h3><div class="grid"><div><label>Spengler Stunden</label><input id="hs" type="number" step=".1" value="${esc(x.hs)}" oninput="calc()"><label>Satz €</label><input id="rs" type="number" step=".01" value="${esc(x.rs)}" oninput="calc()"></div><div><label>Lackierer Stunden</label><input id="hl" type="number" step=".1" value="${esc(x.hl)}" oninput="calc()"><label>Satz €</label><input id="rl" type="number" step=".01" value="${esc(x.rl)}" oninput="calc()"></div><div><label>Mechanik Stunden</label><input id="hm" type="number" step=".1" value="${esc(x.hm)}" oninput="calc()"><label>Satz €</label><input id="rm" type="number" step=".01" value="${esc(x.rm)}" oninput="calc()"></div></div><div class="total" id="total">Gesamt: € 0,00</div>
+<h3>📸 Fotos</h3><input id="photos" type="file" accept="image/*" multiple capture="environment" onchange="addPhotos(this.files)"><div id="photoEdit" class="photoGrid" style="margin-top:8px"></div>
+<h3>📝 Notizen</h3><textarea id="notes">${esc(x.notes)}</textarea><button class="secondary" onclick="speak('notes')">🎤 Spracheingabe</button>
+<br><br><button class="primary" onclick="saveInspection(${i==null?'null':i})">💾 Besichtigung speichern</button></div>`;
+fillRates();renderPhotoEdit();calc();
 }
-function saveInspection(){
- const w=data.workshops[+eWorkshop.value||0]; const a=(+hSp.value||0)*w.sp,b=(+hLa.value||0)*w.la,c=(+hMe.value||0)*w.me;
- data.inspections.push({workshop:w.name,date:eDate.value,time:eTime.value,plate:ePlate.value,make:eMake.value,model:eModel.value,year:eYear.value,damage:eDamage.value,hSp:+hSp.value||0,hLa:+hLa.value||0,hMe:+hMe.value||0,total:a+b+c,notes:eNotes.value,photos:currentPhotos});
- save();show('home');alert('Besichtigung gespeichert.');
+function fillRates(){
+let j=+wi.value,w=db.workshops[j]; if(w){winfo.innerHTML=`${esc(w.address||'')}${w.email?' · ✉️ '+esc(w.email):''}`; if(!rs.value)rs.value=w.spengler||'';if(!rl.value)rl.value=w.lackierer||'';if(!rm.value)rm.value=w.mechanik||''}
 }
-function startSpeech(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){alert('Die Spracheingabe wird von diesem Browser nicht unterstützt. Bitte Safari auf dem iPhone verwenden.');return}
- const r=new SR();r.lang='de-AT';r.interimResults=true;r.continuous=false;
- speechStatus.textContent='🎙️ Ich höre zu...';
- r.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;eNotes.value+=(eNotes.value?' ':'')+t};
- r.onerror=e=>speechStatus.textContent='Sprachaufnahme beendet: '+e.error;
- r.onend=()=>speechStatus.textContent='Sprachaufnahme beendet.';
- r.start();
+function calc(){let t=(+hs?.value||0)*(+rs?.value||0)+(+hl?.value||0)*(+rl?.value||0)+(+hm?.value||0)*(+rm?.value||0);if(total)total.textContent='Arbeitskosten: € '+t.toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function addPhotos(files){[...files].forEach(f=>{let r=new FileReader();r.onload=e=>{currentPhotos.push(e.target.result);renderPhotoEdit()};r.readAsDataURL(f)})}
+function renderPhotoEdit(){if(!photoEdit)return;photoEdit.innerHTML=currentPhotos.map((p,i)=>`<div style="position:relative"><img src="${p}"><button class="danger small" style="position:absolute;right:2px;top:2px;padding:5px 7px" onclick="currentPhotos.splice(${i},1);renderPhotoEdit()">×</button></div>`).join('')}
+function saveInspection(i){
+let j=wi.value===''?null:+wi.value,w=j!=null?db.workshops[j]:null;
+let x={workshopIndex:j,workshopName:w?.name||'',plate:plate.value.trim(),make:make.value.trim(),model:model.value.trim(),year:year.value,vin:vin.value.trim(),km:km.value,fuel:fuel.value,datetime:datetime.value,damage:damage.value,desc:desc.value,tvl:tvl.value,tvr:tvr.value,thl:thl.value,thr:thr.value,tsize:tsize.value,tseason:tseason.value,tbrand:tbrand.value,tdot:tdot.value,tissues:tissues.value,hs:hs.value,rs:rs.value,hl:hl.value,rl:rl.value,hm:hm.value,rm:rm.value,photos:currentPhotos,notes:notes.value};
+if(i===null)db.inspections.push(x);else db.inspections[i]=x;save();viewInspection(i===null?db.inspections.length-1:i);
 }
-function money(n){return Number(n||0).toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
-
-renderList();
+function viewInspection(i){
+let x=db.inspections[i],w=x.workshopIndex!=null?db.workshops[x.workshopIndex]:null;
+app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listInspections()">←</button><h2>Besichtigung</h2><div class="spacer"></div><button class="secondary small" onclick="editInspection(${i})">✏️</button><button class="danger small" onclick="deleteInspection(${i})">🗑️</button></div>
+<div class="card"><h2>${esc(x.make)} ${esc(x.model)}</h2><div class="muted">${esc(x.plate)} · ${esc(x.datetime)}</div><p><b>Werkstatt:</b> ${esc(x.workshopName||'—')} ${w?.email?'· ✉️ '+esc(w.email):''}</p><p><b>Schadensart:</b> ${esc(x.damage||'—')}</p><p><b>Beschreibung:</b><br>${esc(x.desc||'—')}</p></div>
+<div class="card"><h3>🚗 Fahrzeug</h3><p>FIN: ${esc(x.vin||'—')}<br>Baujahr: ${esc(x.year||'—')} · KM: ${esc(x.km||'—')} · Tank: ${esc(x.fuel||'—')}%</p></div>
+<div class="card"><h3>🛞 Reifen</h3><p>VL ${esc(x.tvl||'—')} mm · VR ${esc(x.tvr||'—')} mm<br>HL ${esc(x.thl||'—')} mm · HR ${esc(x.thr||'—')} mm</p><p>${esc(x.tsize||'')} · ${esc(x.tseason||'')} · ${esc(x.tbrand||'')} · DOT ${esc(x.tdot||'')}</p><p>${esc(x.tissues||'')}</p></div>
+<div class="card"><h3>🔧 Arbeitskosten</h3><p>Spengler: ${esc(x.hs||0)} h × €${esc(x.rs||0)}<br>Lackierer: ${esc(x.hl||0)} h × €${esc(x.rl||0)}<br>Mechanik: ${esc(x.hm||0)} h × €${esc(x.rm||0)}</p><div class="total">€ ${((+x.hs||0)*(+x.rs||0)+(+x.hl||0)*(+x.rl||0)+(+x.hm||0)*(+x.rm||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</div></div>
+<div class="card"><h3>📸 Fotos (${(x.photos||[]).length})</h3><div class="photoGrid">${(x.photos||[]).map(p=>`<img src="${p}" onclick="window.open(this.src,'_blank')">`).join('')}</div></div>
+<div class="card"><h3>📝 Notizen</h3><p>${esc(x.notes||'—')}</p></div>`;
+}
+function speak(id){
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("Spracheingabe wird von diesem Browser nicht unterstützt.");return}
+let r=new SR();r.lang='de-AT';r.interimResults=false;r.onresult=e=>{document.getElementById(id).value+=(document.getElementById(id).value?' ':'')+e.results[0][0].transcript};r.start();
+}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+home();
 </script>
-</body></html>
+</body>
+</html>
