@@ -1,6 +1,10 @@
-BesichtigungsApp V3.9
+BesichtigungsApp V4.0
 
 Neu:
-- Reifenmarke mit Auswahlliste für zahlreiche gängige Marken
-- Reifenmarke kann weiterhin frei eingegeben werden
-- Bestehende Funktionen aus V3.8 bleiben enthalten
+- Baujahr durch Erstzulassung ersetzt
+- Gesamtgewicht und höchstzulässiges Gesamtgewicht ergänzt
+- LKW-Marken MAN und DAF ergänzt, Iveco bereits enthalten
+- LKW-Modelle für Iveco, MAN und DAF ergänzt
+- Marke/Modell-Auswahl und freie Modelleingabe bleiben erhalten
+- PDF/Gutachten übernimmt die neuen Fahrzeugdaten
+- Bestehende Funktionen aus V3.9 bleiben enthalten
