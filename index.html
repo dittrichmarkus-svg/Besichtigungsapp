@@ -13,13 +13,20 @@ h1{font-size:28px;margin:8px 0 4px}h2{font-size:21px;margin:0 0 12px}h3{margin:1
 .card{background:white;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0000000d}
 button{border:0;border-radius:12px;padding:12px 14px;font-weight:700;font-size:15px;cursor:pointer}
 .primary{background:#111827;color:white}.secondary{background:#e5e7eb}.danger{background:#fee2e2;color:#991b1b}.small{padding:9px 11px;font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-label{display:block;font-size:13px;font-weight:700;margin:9px 0 4px}input,select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;background:white}textarea{min-height:90px;resize:vertical}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.statusgrid{grid-template-columns:1fr 1fr}.statusgrid label{display:flex!important;align-items:center;gap:8px;width:auto;margin:3px 0;font-weight:500}
+label{display:block;font-size:13px;font-weight:700;margin:9px 0 4px}input,select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;background:white}input[type="checkbox"]{width:22px!important;height:22px;padding:0;margin:0;flex:0 0 22px;border-radius:6px}textarea{min-height:90px;resize:vertical}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.spacer{flex:1}.hidden{display:none}.photoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.photoGrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
 .item{border:1px solid #e5e7eb;border-radius:13px;padding:12px;margin:8px 0}.item strong{display:block}.pill{display:inline-block;background:#eef2ff;padding:5px 8px;border-radius:999px;font-size:12px;margin:3px 3px 0 0}
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}.topbar button{padding:8px 11px}
 .total{font-size:22px;font-weight:800}.nav{position:sticky;bottom:10px;background:#ffffffee;backdrop-filter:blur(10px);border:1px solid #ddd;border-radius:16px;padding:8px;display:flex;gap:6px;margin-top:18px}.nav button{flex:1}
-@media(max-width:500px){.grid3{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+@media(max-width:500px){.grid3{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.statusgrid{grid-template-columns:1fr}}
+
+.photoCatCard{border:1px solid #e5e7eb;border-radius:13px;padding:10px;margin:8px 0;background:#fff}
+.photoCatHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.photoCatHead span{font-size:12px;color:#6b7280}
+.cameraBtn{width:100%;background:#111827;color:#fff;border-radius:10px;padding:10px 12px;font-weight:700;margin-bottom:8px}
+.emptyCat{padding:6px 0 2px}
+
 </style>
 </head>
 <body>
@@ -78,14 +85,12 @@ app.innerHTML=`<div class="topbar"><button class="secondary" onclick="${i==null?
 <h3>🚗 Fahrzeug</h3><div class="grid"><div><label>Kennzeichen</label><input id="plate" value="${esc(x.plate)}"></div><div><label>Marke</label><input id="make" value="${esc(x.make)}"></div><div><label>Modell</label><input id="model" value="${esc(x.model)}"></div><div><label>Baujahr</label><input id="year" type="number" value="${esc(x.year)}"></div><div><label>FIN</label><input id="vin" value="${esc(x.vin)}"></div><div><label>Kilometerstand</label><input id="km" type="number" value="${esc(x.km)}"></div><div><label>Tankfüllstand %</label><input id="fuel" type="number" min="0" max="100" value="${esc(x.fuel)}"></div><div><label>Datum & Uhrzeit</label><input id="datetime" type="datetime-local" value="${esc(x.datetime||new Date().toISOString().slice(0,16))}"></div></div>
 <h3>⚠️ Schaden</h3><label>Schadensart</label><select id="damage"><option value="">Bitte auswählen</option>${['Kollision','Parkschaden','Hagelschaden','Vandalismus','Wildschaden','Glasbruch','Elementarschaden','Sonstiger Schaden'].map(v=>`<option ${x.damage===v?'selected':''}>${v}</option>`).join('')}</select><label>Schadensbeschreibung</label><textarea id="desc">${esc(x.desc)}</textarea><button class="secondary" onclick="speak('desc')">🎤 Spracheingabe</button>
 <h3>✅ Fahrzeugzustand</h3>
-<div class="grid">${["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].map((n,i)=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="st${i}" ${(x.status||{})[n]?'checked':''}> ${n}</label>`).join('')}</div>
+<div class="grid statusgrid">${["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].map((n,i)=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="st${i}" ${(x.status||{})[n]?'checked':''}> ${n}</label>`).join('')}</div>
 <label>Bemerkungen Fahrzeugzustand</label><input id="statusnote" value="${esc(x.statusnote)}">
 <h3>🛞 Reifen</h3><div class="grid"><div><label>VL Profiltiefe mm</label><input id="tvl" type="number" step=".1" value="${esc(x.tvl)}"></div><div><label>VR Profiltiefe mm</label><input id="tvr" type="number" step=".1" value="${esc(x.tvr)}"></div><div><label>HL Profiltiefe mm</label><input id="thl" type="number" step=".1" value="${esc(x.thl)}"></div><div><label>HR Profiltiefe mm</label><input id="thr" type="number" step=".1" value="${esc(x.thr)}"></div><div><label>Reifengröße</label><input id="tsize" value="${esc(x.tsize)}"></div><div><label>Sommer/Winter/Ganzjahr</label><select id="tseason"><option value="">—</option>${['Sommer','Winter','Ganzjahr'].map(v=>`<option ${x.tseason===v?'selected':''}>${v}</option>`).join('')}</select></div><div><label>Reifenmarke</label><input id="tbrand" value="${esc(x.tbrand)}"></div><div><label>DOT</label><input id="tdot" value="${esc(x.tdot)}"></div></div><label>Reifen-/Felgenschäden</label><input id="tissues" value="${esc(x.tissues)}">
 <h3>🔧 Arbeitszeit & Kosten</h3><div class="grid"><div><label>Spengler Stunden</label><input id="hs" type="number" step=".1" value="${esc(x.hs)}" oninput="calc()"><label>Satz €</label><input id="rs" type="number" step=".01" value="${esc(x.rs)}" oninput="calc()"></div><div><label>Lackierer Stunden</label><input id="hl" type="number" step=".1" value="${esc(x.hl)}" oninput="calc()"><label>Satz €</label><input id="rl" type="number" step=".01" value="${esc(x.rl)}" oninput="calc()"></div><div><label>Mechanik Stunden</label><input id="hm" type="number" step=".1" value="${esc(x.hm)}" oninput="calc()"><label>Satz €</label><input id="rm" type="number" step=".01" value="${esc(x.rm)}" oninput="calc()"></div></div><div class="total" id="total">Gesamt: € 0,00</div>
 <h3>📸 Fotos nach Bereich</h3>
-${photoCategorySelect()}
-<div class="row" style="margin-top:8px"><input id="photos" type="file" accept="image/*" multiple capture="environment" onchange="addPhotos(this.files)" style="flex:1"></div>
-<div class="muted" style="margin-top:6px">Foto aufnehmen → Bereich auswählen → Foto wird automatisch zugeordnet.</div>
+<div class="muted">Bei jedem Bereich direkt auf „📷 Foto aufnehmen“ tippen.</div>
 <div id="photoEdit" style="margin-top:8px"></div>
 <h3>📝 Notizen</h3><textarea id="notes">${esc(x.notes)}</textarea><button class="secondary" onclick="speak('notes')">🎤 Spracheingabe</button>
 <br><br><button class="primary" onclick="saveInspection(${i==null?'null':i})">💾 Besichtigung speichern</button></div>`;
@@ -114,6 +119,28 @@ const PHOTO_CATEGORIES=[
 ["fahrzeug","Reifen / Felge"],["schaden","Schaden"],["sonstiges","Sonstiges"]
 ];
 let selectedPhotoCategory="Schaden";
+
+function takePhotoForCategory(category){
+  selectedPhotoCategory = category;
+  let inp = document.getElementById("quickPhotoInput");
+  if(!inp){
+    inp = document.createElement("input");
+    inp.type="file"; inp.accept="image/*"; inp.capture="environment";
+    inp.id="quickPhotoInput"; inp.style.display="none";
+    inp.onchange=()=>{ if(inp.files && inp.files.length) addPhotos(inp.files); inp.value=""; };
+    document.body.appendChild(inp);
+  }
+  inp.click();
+}
+function categoryCard(category, photos){
+  const arr=photos||[];
+  return `<div class="photoCatCard">
+    <div class="photoCatHead"><strong>${esc(category)}</strong><span>${arr.length} Foto${arr.length===1?'':'s'}</span></div>
+    <button class="cameraBtn" onclick="takePhotoForCategory('${esc(category)}')">📷 Foto aufnehmen</button>
+    ${arr.length?`<div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="downloadPhoto('${p.src}','${esc(p.category)}')">💾 Speichern</button></div>`).join('')}</div>`:'<div class="muted emptyCat">Noch kein Foto</div>'}
+  </div>`;
+}
+
 function photoCategorySelect(){
 return `<label>Foto-Bereich</label><select id="photoCategory" onchange="selectedPhotoCategory=this.value">
 ${PHOTO_CATEGORIES.map(([g,n])=>`<option value="${esc(n)}" ${selectedPhotoCategory===n?'selected':''}>${esc(n)}</option>`).join('')}
@@ -140,9 +167,10 @@ function addPhotos(files){
 [...files].forEach(f=>{let r=new FileReader();r.onload=e=>addCategorizedPhoto(e.target.result,selectedPhotoCategory);r.readAsDataURL(f)})
 }
 function renderPhotoEdit(){
-if(!photoEdit)return;
-let groups=photosByCategory(currentPhotos);
-photoEdit.innerHTML=Object.entries(groups).map(([cat,arr])=>`<div class="card" style="padding:10px"><h3 style="margin:4px 0 8px">${esc(cat)} <span class="muted">(${arr.length})</span></h3><div class="photoGrid">${arr.map((p)=>{let idx=currentPhotos.indexOf(p);return `<div style="position:relative"><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="danger small" style="position:absolute;right:2px;top:2px;padding:5px 7px" onclick="currentPhotos.splice(${idx},1);renderPhotoEdit()">×</button><button class="secondary small" style="width:100%;margin-top:3px" onclick="downloadPhoto('${p.src}','${esc(p.category)}')">💾 Speichern</button></div>`}).join('')}</div></div>`).join('') || '<div class="muted">Noch keine Fotos.</div>';
+  if(!photoEdit)return;
+  let groups=photosByCategory(currentPhotos);
+  const wanted=PHOTO_CATEGORIES.map(x=>x[1]).filter((v,i,a)=>a.indexOf(v)===i);
+  photoEdit.innerHTML=wanted.map(cat=>categoryCard(cat,groups[cat]||[])).join('');
 }
 function saveInspection(i){
 let j=wi.value===''?null:+wi.value,w=j!=null?db.workshops[j]:null;
@@ -155,7 +183,7 @@ app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listInspec
 <div class="card"><h2>${esc(x.make)} ${esc(x.model)}</h2><div class="muted">${esc(x.plate)} · ${esc(x.datetime)}</div><p><b>Werkstatt:</b> ${esc(x.workshopName||'—')} ${w?.email?'· ✉️ '+esc(w.email):''}</p><p><b>Schadensart:</b> ${esc(x.damage||'—')}</p><p><b>Beschreibung:</b><br>${esc(x.desc||'—')}</p></div>
 <div class="card"><h3>🚗 Fahrzeug</h3><p>FIN: ${esc(x.vin||'—')}<br>Baujahr: ${esc(x.year||'—')} · KM: ${esc(x.km||'—')} · Tank: ${esc(x.fuel||'—')}%</p></div>
 <div class="card"><h3>✅ Fahrzeugzustand</h3>
-<div class="grid">${["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].map((n,i)=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="st${i}" ${(x.status||{})[n]?'checked':''}> ${n}</label>`).join('')}</div>
+<div class="grid statusgrid">${["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].map((n,i)=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="st${i}" ${(x.status||{})[n]?'checked':''}> ${n}</label>`).join('')}</div>
 <label>Bemerkungen Fahrzeugzustand</label><input id="statusnote" value="${esc(x.statusnote)}">
 <h3>🛞 Reifen</h3><p>VL ${esc(x.tvl||'—')} mm · VR ${esc(x.tvr||'—')} mm<br>HL ${esc(x.thl||'—')} mm · HR ${esc(x.thr||'—')} mm</p><p>${esc(x.tsize||'')} · ${esc(x.tseason||'')} · ${esc(x.tbrand||'')} · DOT ${esc(x.tdot||'')}</p><p>${esc(x.tissues||'')}</p></div>
 <div class="card"><h3>🔧 Arbeitskosten</h3><p>Spengler: ${esc(x.hs||0)} h × €${esc(x.rs||0)}<br>Lackierer: ${esc(x.hl||0)} h × €${esc(x.rl||0)}<br>Mechanik: ${esc(x.hm||0)} h × €${esc(x.rm||0)}</p><div class="total">€ ${((+x.hs||0)*(+x.rs||0)+(+x.hl||0)*(+x.rl||0)+(+x.hm||0)*(+x.rm||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</div></div>
