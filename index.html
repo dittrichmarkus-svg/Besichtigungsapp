@@ -71,15 +71,22 @@ ilist.innerHTML=arr.length?arr.map(x=>`<div class="item"><strong>${esc(x.make)} 
 }
 function deleteInspection(i){if(confirm("Besichtigung inklusive Fotos wirklich löschen?")){db.inspections.splice(i,1);save();listInspections()}}
 function editInspection(i=null){
-let x=i==null?{}:db.inspections[i];currentPhotos=[...(x.photos||[])];
+let x=i==null?{}:db.inspections[i];currentPhotos=normalizePhotos(x.photos);
 let options='<option value="">Werkstatt auswählen</option>'+db.workshops.map((w,j)=>`<option value="${j}" ${String(x.workshopIndex)===String(j)?'selected':''}>${esc(w.name)}</option>`).join('');
 app.innerHTML=`<div class="topbar"><button class="secondary" onclick="${i==null?'home()':'listInspections()'}">←</button><h2>${i==null?'Neue Besichtigung':'Besichtigung bearbeiten'}</h2></div>
 <div class="card"><h3>🏭 Werkstatt</h3><select id="wi" onchange="fillRates()">${options}</select><div id="winfo" class="muted" style="margin-top:7px"></div>
 <h3>🚗 Fahrzeug</h3><div class="grid"><div><label>Kennzeichen</label><input id="plate" value="${esc(x.plate)}"></div><div><label>Marke</label><input id="make" value="${esc(x.make)}"></div><div><label>Modell</label><input id="model" value="${esc(x.model)}"></div><div><label>Baujahr</label><input id="year" type="number" value="${esc(x.year)}"></div><div><label>FIN</label><input id="vin" value="${esc(x.vin)}"></div><div><label>Kilometerstand</label><input id="km" type="number" value="${esc(x.km)}"></div><div><label>Tankfüllstand %</label><input id="fuel" type="number" min="0" max="100" value="${esc(x.fuel)}"></div><div><label>Datum & Uhrzeit</label><input id="datetime" type="datetime-local" value="${esc(x.datetime||new Date().toISOString().slice(0,16))}"></div></div>
 <h3>⚠️ Schaden</h3><label>Schadensart</label><select id="damage"><option value="">Bitte auswählen</option>${['Kollision','Parkschaden','Hagelschaden','Vandalismus','Wildschaden','Glasbruch','Elementarschaden','Sonstiger Schaden'].map(v=>`<option ${x.damage===v?'selected':''}>${v}</option>`).join('')}</select><label>Schadensbeschreibung</label><textarea id="desc">${esc(x.desc)}</textarea><button class="secondary" onclick="speak('desc')">🎤 Spracheingabe</button>
+<h3>✅ Fahrzeugzustand</h3>
+<div class="grid">${["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].map((n,i)=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="st${i}" ${(x.status||{})[n]?'checked':''}> ${n}</label>`).join('')}</div>
+<label>Bemerkungen Fahrzeugzustand</label><input id="statusnote" value="${esc(x.statusnote)}">
 <h3>🛞 Reifen</h3><div class="grid"><div><label>VL Profiltiefe mm</label><input id="tvl" type="number" step=".1" value="${esc(x.tvl)}"></div><div><label>VR Profiltiefe mm</label><input id="tvr" type="number" step=".1" value="${esc(x.tvr)}"></div><div><label>HL Profiltiefe mm</label><input id="thl" type="number" step=".1" value="${esc(x.thl)}"></div><div><label>HR Profiltiefe mm</label><input id="thr" type="number" step=".1" value="${esc(x.thr)}"></div><div><label>Reifengröße</label><input id="tsize" value="${esc(x.tsize)}"></div><div><label>Sommer/Winter/Ganzjahr</label><select id="tseason"><option value="">—</option>${['Sommer','Winter','Ganzjahr'].map(v=>`<option ${x.tseason===v?'selected':''}>${v}</option>`).join('')}</select></div><div><label>Reifenmarke</label><input id="tbrand" value="${esc(x.tbrand)}"></div><div><label>DOT</label><input id="tdot" value="${esc(x.tdot)}"></div></div><label>Reifen-/Felgenschäden</label><input id="tissues" value="${esc(x.tissues)}">
 <h3>🔧 Arbeitszeit & Kosten</h3><div class="grid"><div><label>Spengler Stunden</label><input id="hs" type="number" step=".1" value="${esc(x.hs)}" oninput="calc()"><label>Satz €</label><input id="rs" type="number" step=".01" value="${esc(x.rs)}" oninput="calc()"></div><div><label>Lackierer Stunden</label><input id="hl" type="number" step=".1" value="${esc(x.hl)}" oninput="calc()"><label>Satz €</label><input id="rl" type="number" step=".01" value="${esc(x.rl)}" oninput="calc()"></div><div><label>Mechanik Stunden</label><input id="hm" type="number" step=".1" value="${esc(x.hm)}" oninput="calc()"><label>Satz €</label><input id="rm" type="number" step=".01" value="${esc(x.rm)}" oninput="calc()"></div></div><div class="total" id="total">Gesamt: € 0,00</div>
-<h3>📸 Fotos</h3><input id="photos" type="file" accept="image/*" multiple capture="environment" onchange="addPhotos(this.files)"><div id="photoEdit" class="photoGrid" style="margin-top:8px"></div>
+<h3>📸 Fotos nach Bereich</h3>
+${photoCategorySelect()}
+<div class="row" style="margin-top:8px"><input id="photos" type="file" accept="image/*" multiple capture="environment" onchange="addPhotos(this.files)" style="flex:1"></div>
+<div class="muted" style="margin-top:6px">Foto aufnehmen → Bereich auswählen → Foto wird automatisch zugeordnet.</div>
+<div id="photoEdit" style="margin-top:8px"></div>
 <h3>📝 Notizen</h3><textarea id="notes">${esc(x.notes)}</textarea><button class="secondary" onclick="speak('notes')">🎤 Spracheingabe</button>
 <br><br><button class="primary" onclick="saveInspection(${i==null?'null':i})">💾 Besichtigung speichern</button></div>`;
 fillRates();renderPhotoEdit();calc();
@@ -88,11 +95,58 @@ function fillRates(){
 let j=+wi.value,w=db.workshops[j]; if(w){winfo.innerHTML=`${esc(w.address||'')}${w.email?' · ✉️ '+esc(w.email):''}`; if(!rs.value)rs.value=w.spengler||'';if(!rl.value)rl.value=w.lackierer||'';if(!rm.value)rm.value=w.mechanik||''}
 }
 function calc(){let t=(+hs?.value||0)*(+rs?.value||0)+(+hl?.value||0)*(+rl?.value||0)+(+hm?.value||0)*(+rm?.value||0);if(total)total.textContent='Arbeitskosten: € '+t.toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function addPhotos(files){[...files].forEach(f=>{let r=new FileReader();r.onload=e=>{currentPhotos.push(e.target.result);renderPhotoEdit()};r.readAsDataURL(f)})}
-function renderPhotoEdit(){if(!photoEdit)return;photoEdit.innerHTML=currentPhotos.map((p,i)=>`<div style="position:relative"><img src="${p}"><button class="danger small" style="position:absolute;right:2px;top:2px;padding:5px 7px" onclick="currentPhotos.splice(${i},1);renderPhotoEdit()">×</button></div>`).join('')}
+
+const PHOTO_CATEGORIES=[
+["außen","Vorne links"],["außen","Vorne Mitte"],["außen","Vorne rechts"],
+["außen","Seite links"],["außen","Seite rechts"],
+["außen","Hinten links"],["außen","Hinten Mitte"],["außen","Hinten rechts"],
+["karosserie","Stoßfänger vorne"],["karosserie","Motorhaube"],
+["karosserie","Kotflügel vorne links"],["karosserie","Kotflügel vorne rechts"],
+["karosserie","Tür vorne links"],["karosserie","Tür vorne rechts"],
+["karosserie","Tür hinten links"],["karosserie","Tür hinten rechts"],
+["karosserie","Seitenteil hinten links"],["karosserie","Seitenteil hinten rechts"],
+["karosserie","Schweller links"],["karosserie","Schweller rechts"],
+["karosserie","Außenspiegel links"],["karosserie","Außenspiegel rechts"],
+["karosserie","Stoßfänger hinten"],["karosserie","Heckklappe / Heckdeckel"],
+["karosserie","Heckblech"],["karosserie","Scheinwerfer links"],["karosserie","Scheinwerfer rechts"],
+["karosserie","Rückleuchte links"],["karosserie","Rückleuchte rechts"],
+["fahrzeug","Innenraum"],["fahrzeug","Armaturenbrett"],["fahrzeug","Kilometerstand"],["fahrzeug","FIN"],
+["fahrzeug","Reifen / Felge"],["schaden","Schaden"],["sonstiges","Sonstiges"]
+];
+let selectedPhotoCategory="Schaden";
+function photoCategorySelect(){
+return `<label>Foto-Bereich</label><select id="photoCategory" onchange="selectedPhotoCategory=this.value">
+${PHOTO_CATEGORIES.map(([g,n])=>`<option value="${esc(n)}" ${selectedPhotoCategory===n?'selected':''}>${esc(n)}</option>`).join('')}
+</select>`;
+}
+function addCategorizedPhoto(dataUrl, category){
+currentPhotos.push({src:dataUrl,category});
+renderPhotoEdit();
+}
+function normalizePhotos(arr){
+return (arr||[]).map(p=>typeof p==="string"?{src:p,category:"Schaden"}:p);
+}
+function downloadPhoto(src, category){
+const a=document.createElement("a");a.href=src;a.download=`BesichtigungsApp_${(category||"Foto").replace(/[^a-z0-9äöüÄÖÜ _-]/gi,"_")}_${Date.now()}.jpg`;document.body.appendChild(a);a.click();a.remove();
+}
+function openPhoto(src){
+const w=window.open(); if(w){w.document.write(`<html><body style="margin:0;background:#111;display:grid;place-items:center"><img src="${src}" style="max-width:100%;max-height:100vh;object-fit:contain"></body></html>`);w.document.close();}
+}
+function photosByCategory(arr){
+const m={};normalizePhotos(arr).forEach(p=>(m[p.category]??=[]).push(p));return m;
+}
+
+function addPhotos(files){
+[...files].forEach(f=>{let r=new FileReader();r.onload=e=>addCategorizedPhoto(e.target.result,selectedPhotoCategory);r.readAsDataURL(f)})
+}
+function renderPhotoEdit(){
+if(!photoEdit)return;
+let groups=photosByCategory(currentPhotos);
+photoEdit.innerHTML=Object.entries(groups).map(([cat,arr])=>`<div class="card" style="padding:10px"><h3 style="margin:4px 0 8px">${esc(cat)} <span class="muted">(${arr.length})</span></h3><div class="photoGrid">${arr.map((p)=>{let idx=currentPhotos.indexOf(p);return `<div style="position:relative"><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="danger small" style="position:absolute;right:2px;top:2px;padding:5px 7px" onclick="currentPhotos.splice(${idx},1);renderPhotoEdit()">×</button><button class="secondary small" style="width:100%;margin-top:3px" onclick="downloadPhoto('${p.src}','${esc(p.category)}')">💾 Speichern</button></div>`}).join('')}</div></div>`).join('') || '<div class="muted">Noch keine Fotos.</div>';
+}
 function saveInspection(i){
 let j=wi.value===''?null:+wi.value,w=j!=null?db.workshops[j]:null;
-let x={workshopIndex:j,workshopName:w?.name||'',plate:plate.value.trim(),make:make.value.trim(),model:model.value.trim(),year:year.value,vin:vin.value.trim(),km:km.value,fuel:fuel.value,datetime:datetime.value,damage:damage.value,desc:desc.value,tvl:tvl.value,tvr:tvr.value,thl:thl.value,thr:thr.value,tsize:tsize.value,tseason:tseason.value,tbrand:tbrand.value,tdot:tdot.value,tissues:tissues.value,hs:hs.value,rs:rs.value,hl:hl.value,rl:rl.value,hm:hm.value,rm:rm.value,photos:currentPhotos,notes:notes.value};
+let status={};["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].forEach((n,k)=>status[n]=document.getElementById("st"+k)?.checked);let x={status,statusnote:statusnote.value.trim(),workshopIndex:j,workshopName:w?.name||'',plate:plate.value.trim(),make:make.value.trim(),model:model.value.trim(),year:year.value,vin:vin.value.trim(),km:km.value,fuel:fuel.value,datetime:datetime.value,damage:damage.value,desc:desc.value,tvl:tvl.value,tvr:tvr.value,thl:thl.value,thr:thr.value,tsize:tsize.value,tseason:tseason.value,tbrand:tbrand.value,tdot:tdot.value,tissues:tissues.value,hs:hs.value,rs:rs.value,hl:hl.value,rl:rl.value,hm:hm.value,rm:rm.value,photos:currentPhotos,notes:notes.value};
 if(i===null)db.inspections.push(x);else db.inspections[i]=x;save();viewInspection(i===null?db.inspections.length-1:i);
 }
 function viewInspection(i){
@@ -100,9 +154,12 @@ let x=db.inspections[i],w=x.workshopIndex!=null?db.workshops[x.workshopIndex]:nu
 app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listInspections()">←</button><h2>Besichtigung</h2><div class="spacer"></div><button class="secondary small" onclick="editInspection(${i})">✏️</button><button class="danger small" onclick="deleteInspection(${i})">🗑️</button></div>
 <div class="card"><h2>${esc(x.make)} ${esc(x.model)}</h2><div class="muted">${esc(x.plate)} · ${esc(x.datetime)}</div><p><b>Werkstatt:</b> ${esc(x.workshopName||'—')} ${w?.email?'· ✉️ '+esc(w.email):''}</p><p><b>Schadensart:</b> ${esc(x.damage||'—')}</p><p><b>Beschreibung:</b><br>${esc(x.desc||'—')}</p></div>
 <div class="card"><h3>🚗 Fahrzeug</h3><p>FIN: ${esc(x.vin||'—')}<br>Baujahr: ${esc(x.year||'—')} · KM: ${esc(x.km||'—')} · Tank: ${esc(x.fuel||'—')}%</p></div>
-<div class="card"><h3>🛞 Reifen</h3><p>VL ${esc(x.tvl||'—')} mm · VR ${esc(x.tvr||'—')} mm<br>HL ${esc(x.thl||'—')} mm · HR ${esc(x.thr||'—')} mm</p><p>${esc(x.tsize||'')} · ${esc(x.tseason||'')} · ${esc(x.tbrand||'')} · DOT ${esc(x.tdot||'')}</p><p>${esc(x.tissues||'')}</p></div>
+<div class="card"><h3>✅ Fahrzeugzustand</h3>
+<div class="grid">${["Frontscheibe","Seitenscheiben","Scheinwerfer","Rückleuchten","Felgen","Reifen","Innenraum","Karosserie","Unterboden"].map((n,i)=>`<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="st${i}" ${(x.status||{})[n]?'checked':''}> ${n}</label>`).join('')}</div>
+<label>Bemerkungen Fahrzeugzustand</label><input id="statusnote" value="${esc(x.statusnote)}">
+<h3>🛞 Reifen</h3><p>VL ${esc(x.tvl||'—')} mm · VR ${esc(x.tvr||'—')} mm<br>HL ${esc(x.thl||'—')} mm · HR ${esc(x.thr||'—')} mm</p><p>${esc(x.tsize||'')} · ${esc(x.tseason||'')} · ${esc(x.tbrand||'')} · DOT ${esc(x.tdot||'')}</p><p>${esc(x.tissues||'')}</p></div>
 <div class="card"><h3>🔧 Arbeitskosten</h3><p>Spengler: ${esc(x.hs||0)} h × €${esc(x.rs||0)}<br>Lackierer: ${esc(x.hl||0)} h × €${esc(x.rl||0)}<br>Mechanik: ${esc(x.hm||0)} h × €${esc(x.rm||0)}</p><div class="total">€ ${((+x.hs||0)*(+x.rs||0)+(+x.hl||0)*(+x.rl||0)+(+x.hm||0)*(+x.rm||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</div></div>
-<div class="card"><h3>📸 Fotos (${(x.photos||[]).length})</h3><div class="photoGrid">${(x.photos||[]).map(p=>`<img src="${p}" onclick="window.open(this.src,'_blank')">`).join('')}</div></div>
+<div class="card"><h3>📸 Fotos nach Bereich (${normalizePhotos(x.photos).length})</h3>${Object.entries(photosByCategory(x.photos)).map(([cat,arr])=>`<div class="card" style="padding:10px"><h3 style="margin:4px 0 8px">${esc(cat)} (${arr.length})</h3><div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="downloadPhoto('${p.src}','${esc(p.category)}')">💾 Speichern</button></div>`).join('')}</div></div>`).join('')||'<div class="muted">Keine Fotos.</div>'}</div>
 <div class="card"><h3>📝 Notizen</h3><p>${esc(x.notes||'—')}</p></div>`;
 }
 function speak(id){
