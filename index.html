@@ -59,7 +59,7 @@ let w=i==null?{}:db.workshops[i];
 app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listWorkshops()">←</button><h2>${i==null?'Neue Werkstatt':'Werkstatt bearbeiten'}</h2></div>
 <div class="card"><label>Werkstattname</label><input id="wn" value="${esc(w.name)}"><label>Ansprechpartner</label><input id="wp" value="${esc(w.contact)}"><label>Adresse</label><input id="wa" value="${esc(w.address)}"><label>Telefon</label><input id="wt" value="${esc(w.phone)}"><label>E-Mail</label><input id="we" type="email" value="${esc(w.email)}">
 <h3>Stundensätze</h3><div class="grid3"><div><label>Spengler €</label><input id="ws" type="number" step=".01" value="${w.spengler??''}"></div><div><label>Lackierer €</label><input id="wl" type="number" step=".01" value="${w.lackierer??''}"></div><div><label>Mechanik €</label><input id="wm" type="number" step=".01" value="${w.mechanik??''}"></div></div>
-<br><button class="primary" onclick="saveWorkshop(${i==null?'null':i})">💾 Speichern</button></div>`;
+<br><button class="primary" onclick="saveWorkshop(${i==null?'null':i})">💾 In Fotos speichern</button></div>`;
 }
 function saveWorkshop(i){
 let w={name:wn.value.trim(),contact:wp.value.trim(),address:wa.value.trim(),phone:wt.value.trim(),email:we.value.trim(),spengler:+ws.value||0,lackierer:+wl.value||0,mechanik:+wm.value||0};
@@ -90,7 +90,7 @@ app.innerHTML=`<div class="topbar"><button class="secondary" onclick="${i==null?
 <h3>🛞 Reifen</h3><div class="grid"><div><label>VL Profiltiefe mm</label><input id="tvl" type="number" step=".1" value="${esc(x.tvl)}"></div><div><label>VR Profiltiefe mm</label><input id="tvr" type="number" step=".1" value="${esc(x.tvr)}"></div><div><label>HL Profiltiefe mm</label><input id="thl" type="number" step=".1" value="${esc(x.thl)}"></div><div><label>HR Profiltiefe mm</label><input id="thr" type="number" step=".1" value="${esc(x.thr)}"></div><div><label>Reifengröße</label><input id="tsize" value="${esc(x.tsize)}"></div><div><label>Sommer/Winter/Ganzjahr</label><select id="tseason"><option value="">—</option>${['Sommer','Winter','Ganzjahr'].map(v=>`<option ${x.tseason===v?'selected':''}>${v}</option>`).join('')}</select></div><div><label>Reifenmarke</label><input id="tbrand" value="${esc(x.tbrand)}"></div><div><label>DOT</label><input id="tdot" value="${esc(x.tdot)}"></div></div><label>Reifen-/Felgenschäden</label><input id="tissues" value="${esc(x.tissues)}">
 <h3>🔧 Arbeitszeit & Kosten</h3><div class="grid"><div><label>Spengler Stunden</label><input id="hs" type="number" step=".1" value="${esc(x.hs)}" oninput="calc()"><label>Satz €</label><input id="rs" type="number" step=".01" value="${esc(x.rs)}" oninput="calc()"></div><div><label>Lackierer Stunden</label><input id="hl" type="number" step=".1" value="${esc(x.hl)}" oninput="calc()"><label>Satz €</label><input id="rl" type="number" step=".01" value="${esc(x.rl)}" oninput="calc()"></div><div><label>Mechanik Stunden</label><input id="hm" type="number" step=".1" value="${esc(x.hm)}" oninput="calc()"><label>Satz €</label><input id="rm" type="number" step=".01" value="${esc(x.rm)}" oninput="calc()"></div></div><div class="total" id="total">Gesamt: € 0,00</div>
 <h3>📸 Fotos nach Bereich</h3>
-<div class="muted">Bei jedem Bereich direkt auf „📷 Foto aufnehmen“ tippen.</div>
+<div class="muted">Bei jedem Bereich direkt auf „📷 Foto aufnehmen“ tippen. Danach kannst du das Foto mit „💾 In Fotos speichern“ in deine iPhone-Fotomediathek übernehmen.</div>
 <div id="photoEdit" style="margin-top:8px"></div>
 <h3>📝 Notizen</h3><textarea id="notes">${esc(x.notes)}</textarea><button class="secondary" onclick="speak('notes')">🎤 Spracheingabe</button>
 <br><br><button class="primary" onclick="saveInspection(${i==null?'null':i})">💾 Besichtigung speichern</button></div>`;
@@ -137,7 +137,7 @@ function categoryCard(category, photos){
   return `<div class="photoCatCard">
     <div class="photoCatHead"><strong>${esc(category)}</strong><span>${arr.length} Foto${arr.length===1?'':'s'}</span></div>
     <button class="cameraBtn" onclick="takePhotoForCategory('${esc(category)}')">📷 Foto aufnehmen</button>
-    ${arr.length?`<div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="downloadPhoto('${p.src}','${esc(p.category)}')">💾 Speichern</button></div>`).join('')}</div>`:'<div class="muted emptyCat">Noch kein Foto</div>'}
+    ${arr.length?`<div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="saveToPhonePhotos('${p.src}','${esc(p.category)}')">💾 In Fotos speichern</button></div>`).join('')}</div>`:'<div class="muted emptyCat">Noch kein Foto</div>'}
   </div>`;
 }
 
@@ -153,6 +153,25 @@ renderPhotoEdit();
 function normalizePhotos(arr){
 return (arr||[]).map(p=>typeof p==="string"?{src:p,category:"Schaden"}:p);
 }
+
+async function saveToPhonePhotos(src, category){
+  try{
+    const res=await fetch(src);
+    const blob=await res.blob();
+    const file=new File([blob],`BesichtigungsApp_${(category||"Foto").replace(/[^a-z0-9äöüÄÖÜ _-]/gi,"_")}_${Date.now()}.jpg`,{type:blob.type||"image/jpeg"});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:"Foto speichern",text:`BesichtigungsApp – ${category||"Foto"}`});
+      return;
+    }
+    // iOS fallback: open the image; user can long-press and choose "Zu Fotos hinzufügen".
+    openPhoto(src);
+    alert("Das Foto wurde geöffnet. Auf dem iPhone das Bild gedrückt halten und „Zu Fotos hinzufügen“ wählen.");
+  }catch(e){
+    openPhoto(src);
+    alert("Bitte das geöffnete Foto gedrückt halten und „Zu Fotos hinzufügen“ wählen.");
+  }
+}
+
 function downloadPhoto(src, category){
 const a=document.createElement("a");a.href=src;a.download=`BesichtigungsApp_${(category||"Foto").replace(/[^a-z0-9äöüÄÖÜ _-]/gi,"_")}_${Date.now()}.jpg`;document.body.appendChild(a);a.click();a.remove();
 }
@@ -187,7 +206,7 @@ app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listInspec
 <label>Bemerkungen Fahrzeugzustand</label><input id="statusnote" value="${esc(x.statusnote)}">
 <h3>🛞 Reifen</h3><p>VL ${esc(x.tvl||'—')} mm · VR ${esc(x.tvr||'—')} mm<br>HL ${esc(x.thl||'—')} mm · HR ${esc(x.thr||'—')} mm</p><p>${esc(x.tsize||'')} · ${esc(x.tseason||'')} · ${esc(x.tbrand||'')} · DOT ${esc(x.tdot||'')}</p><p>${esc(x.tissues||'')}</p></div>
 <div class="card"><h3>🔧 Arbeitskosten</h3><p>Spengler: ${esc(x.hs||0)} h × €${esc(x.rs||0)}<br>Lackierer: ${esc(x.hl||0)} h × €${esc(x.rl||0)}<br>Mechanik: ${esc(x.hm||0)} h × €${esc(x.rm||0)}</p><div class="total">€ ${((+x.hs||0)*(+x.rs||0)+(+x.hl||0)*(+x.rl||0)+(+x.hm||0)*(+x.rm||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</div></div>
-<div class="card"><h3>📸 Fotos nach Bereich (${normalizePhotos(x.photos).length})</h3>${Object.entries(photosByCategory(x.photos)).map(([cat,arr])=>`<div class="card" style="padding:10px"><h3 style="margin:4px 0 8px">${esc(cat)} (${arr.length})</h3><div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="downloadPhoto('${p.src}','${esc(p.category)}')">💾 Speichern</button></div>`).join('')}</div></div>`).join('')||'<div class="muted">Keine Fotos.</div>'}</div>
+<div class="card"><h3>📸 Fotos nach Bereich (${normalizePhotos(x.photos).length})</h3>${Object.entries(photosByCategory(x.photos)).map(([cat,arr])=>`<div class="card" style="padding:10px"><h3 style="margin:4px 0 8px">${esc(cat)} (${arr.length})</h3><div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="saveToPhonePhotos('${p.src}','${esc(p.category)}')">💾 In Fotos speichern</button></div>`).join('')}</div></div>`).join('')||'<div class="muted">Keine Fotos.</div>'}</div>
 <div class="card"><h3>📝 Notizen</h3><p>${esc(x.notes||'—')}</p></div>`;
 }
 function speak(id){
