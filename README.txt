@@ -1,3 +1,3 @@
-KFZ BesichtigungsApp – PWA
-Öffne index.html in Safari. Für eine echte Home-Bildschirm-Installation muss die Web-App über eine HTTPS-Webadresse bereitgestellt werden.
-Funktionen: Werkstätten, Stundensätze, Besichtigungen, automatische Berechnung, Fotos, Sprachnotizen, lokale Speicherung.
+BesichtigungsApp V3.4
+
+Neu: Pro Bauteil im Fahrzeugzustand kann jetzt nach dem Auswählen zwischen Reparieren und Ersetzen gewählt werden.
