@@ -33,7 +33,8 @@ label{display:block;font-size:13px;font-weight:700;margin:9px 0 4px}input,select
 .damage-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .damage-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .damage-grid label{margin-top:0}
-.damage-remove{white-space:nowrap}
+ .damage-remove{white-space:nowrap}
+.report-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.report-actions button{flex:1;min-width:180px}.report-page{background:#fff;color:#111827}.report-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:3px solid #111827;padding-bottom:12px;margin-bottom:16px}.report-logo{font-size:22px;font-weight:800}.report-meta{text-align:right;font-size:13px}.report-section{border:1px solid #d1d5db;border-radius:10px;padding:12px;margin:10px 0;break-inside:avoid}.report-section h3{margin:0 0 8px}.report-table{width:100%;border-collapse:collapse;font-size:12px}.report-table th,.report-table td{border:1px solid #d1d5db;padding:6px;text-align:left;vertical-align:top}.report-table th{background:#f3f4f6}.report-photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.report-photo-grid img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid #d1d5db;border-radius:4px}.report-sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:35px}.report-sign div{border-top:1px solid #6b7280;padding-top:6px;font-size:12px}@media print{body{background:#fff!important}.wrap{max-width:none;padding:0}.nav{display:none!important}.no-print{display:none!important}.report-page{display:block!important}.report-actions{display:none!important}.report-section{break-inside:avoid}.report-photo-grid img{break-inside:avoid}}
 @media(max-width:520px){.damage-grid{grid-template-columns:1fr}.damage-toolbar{grid-template-columns:1fr}.damage-toolbar button{width:100%}}
 
 </style>
@@ -52,6 +53,11 @@ const KEY="besichtigungsapp_v2";
 let db=JSON.parse(localStorage.getItem(KEY)||'{"workshops":[],"inspections":[]}');
 let currentPhotos=[];
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function nextGutachtenNr(){
+  const year=new Date().getFullYear();
+  const nums=db.inspections.map(x=>String(x.gutachtenNr||'').match(new RegExp('^GA-'+year+'-(\\d+)$'))).filter(Boolean).map(m=>+m[1]);
+  return `GA-${year}-${String((nums.length?Math.max(...nums):0)+1).padStart(4,'0')}`;
+}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function home(){
 app.innerHTML=`<h1>BesichtigungsApp</h1><div class="muted">Deine digitale Besichtigungsakte</div>
@@ -68,7 +74,7 @@ let w=i==null?{}:db.workshops[i];
 app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listWorkshops()">←</button><h2>${i==null?'Neue Werkstatt':'Werkstatt bearbeiten'}</h2></div>
 <div class="card"><label>Werkstattname</label><input id="wn" value="${esc(w.name)}"><label>Ansprechpartner</label><input id="wp" value="${esc(w.contact)}"><label>Adresse</label><input id="wa" value="${esc(w.address)}"><label>Telefon</label><input id="wt" value="${esc(w.phone)}"><label>E-Mail</label><input id="we" type="email" value="${esc(w.email)}">
 <h3>Stundensätze</h3><div class="grid3"><div><label>Spengler €</label><input id="ws" type="number" step=".01" value="${w.spengler??''}"></div><div><label>Lackierer €</label><input id="wl" type="number" step=".01" value="${w.lackierer??''}"></div><div><label>Mechanik €</label><input id="wm" type="number" step=".01" value="${w.mechanik??''}"></div></div>
-<br><button class="primary" onclick="saveWorkshop(${i==null?'null':i})">💾 In Fotos speichern</button></div>`;
+<br><button class="primary" onclick="saveWorkshop(${i==null?'null':i})">💾 Werkstatt speichern</button></div>`;
 }
 function saveWorkshop(i){
 let w={name:wn.value.trim(),contact:wp.value.trim(),address:wa.value.trim(),phone:wt.value.trim(),email:we.value.trim(),spengler:+ws.value||0,lackierer:+wl.value||0,mechanik:+wm.value||0};
@@ -90,7 +96,7 @@ function editInspection(i=null){
 let x=i==null?{}:db.inspections[i];currentPhotos=normalizePhotos(x.photos);
 let options='<option value="">Werkstatt auswählen</option>'+db.workshops.map((w,j)=>`<option value="${j}" ${String(x.workshopIndex)===String(j)?'selected':''}>${esc(w.name)}</option>`).join('');
 app.innerHTML=`<div class="topbar"><button class="secondary" onclick="${i==null?'home()':'listInspections()'}">←</button><h2>${i==null?'Neue Besichtigung':'Besichtigung bearbeiten'}</h2></div>
-<div class="card"><h3>🏭 Werkstatt</h3><select id="wi" onchange="fillRates()">${options}</select><div id="winfo" class="muted" style="margin-top:7px"></div>
+<div class="card"><h3>📄 Gutachten</h3><label>Gutachten-Nr.</label><input id="gutachtenNr" value="${esc(x.gutachtenNr||nextGutachtenNr())}" placeholder="z. B. GA-2026-0001"><p class="muted">Die Nummer wird automatisch vorgeschlagen und kann geändert werden.</p><h3>🏭 Werkstatt</h3><select id="wi" onchange="fillRates()">${options}</select><div id="winfo" class="muted" style="margin-top:7px"></div>
 <h3>🚗 Fahrzeug</h3><div class="grid"><div><label>Kennzeichen</label><input id="plate" value="${esc(x.plate)}"></div><div><label>Marke</label><input id="make" value="${esc(x.make)}"></div><div><label>Modell</label><input id="model" value="${esc(x.model)}"></div><div><label>Baujahr</label><input id="year" type="number" value="${esc(x.year)}"></div><div><label>FIN</label><input id="vin" value="${esc(x.vin)}"></div><div><label>Kilometerstand</label><input id="km" type="number" value="${esc(x.km)}"></div><div><label>Tankfüllstand %</label><input id="fuel" type="number" min="0" max="100" value="${esc(x.fuel)}"></div><div><label>Datum & Uhrzeit</label><input id="datetime" type="datetime-local" value="${esc(x.datetime||new Date().toISOString().slice(0,16))}"></div></div>
 <h3>⚠️ Schaden</h3><label>Schadensart</label><select id="damage"><option value="">Bitte auswählen</option>${['Kollision','Parkschaden','Hagelschaden','Vandalismus','Wildschaden','Glasbruch','Elementarschaden','Sonstiger Schaden'].map(v=>`<option ${x.damage===v?'selected':''}>${v}</option>`).join('')}</select><label>Schadensbeschreibung</label><textarea id="desc">${esc(x.desc)}</textarea><button class="secondary" onclick="speak('desc')">🎤 Spracheingabe</button>
 <h3>⚠️ Bauteile / Schäden</h3>
@@ -221,13 +227,14 @@ function renderDamageItems(){
 }
 function saveInspection(i){
 let j=wi.value===''?null:+wi.value,w=j!=null?db.workshops[j]:null;
-let status={}; damageItems.forEach(d=>status[d.part]={checked:true,action:d.action||'',type:d.type||'',paint:d.paint||'',note:d.note||''}); let x={damageItems:damageItems.map(d=>({...d})),status,statusnote:statusnote.value.trim(),workshopIndex:j,workshopName:w?.name||'',plate:plate.value.trim(),make:make.value.trim(),model:model.value.trim(),year:year.value,vin:vin.value.trim(),km:km.value,fuel:fuel.value,datetime:datetime.value,damage:damage.value,desc:desc.value,tvl:tvl.value,tvr:tvr.value,thl:thl.value,thr:thr.value,tsize:tsize.value,tseason:tseason.value,tbrand:tbrand.value,tdot:tdot.value,tissues:tissues.value,hs:hs.value,rs:rs.value,hl:hl.value,rl:rl.value,hm:hm.value,rm:rm.value,photos:currentPhotos,notes:notes.value};
+let gutNr=(document.getElementById('gutachtenNr')?.value||'').trim();
+let status={}; damageItems.forEach(d=>status[d.part]={checked:true,action:d.action||'',type:d.type||'',paint:d.paint||'',note:d.note||''}); let x={gutachtenNr:gutNr,damageItems:damageItems.map(d=>({...d})),status,statusnote:statusnote.value.trim(),workshopIndex:j,workshopName:w?.name||'',plate:plate.value.trim(),make:make.value.trim(),model:model.value.trim(),year:year.value,vin:vin.value.trim(),km:km.value,fuel:fuel.value,datetime:datetime.value,damage:damage.value,desc:desc.value,tvl:tvl.value,tvr:tvr.value,thl:thl.value,thr:thr.value,tsize:tsize.value,tseason:tseason.value,tbrand:tbrand.value,tdot:tdot.value,tissues:tissues.value,hs:hs.value,rs:rs.value,hl:hl.value,rl:rl.value,hm:hm.value,rm:rm.value,photos:currentPhotos,notes:notes.value};
 if(i===null)db.inspections.push(x);else db.inspections[i]=x;save();viewInspection(i===null?db.inspections.length-1:i);
 }
 function viewInspection(i){
 let x=db.inspections[i],w=x.workshopIndex!=null?db.workshops[x.workshopIndex]:null;
 app.innerHTML=`<div class="topbar"><button class="secondary" onclick="listInspections()">←</button><h2>Besichtigung</h2><div class="spacer"></div><button class="secondary small" onclick="editInspection(${i})">✏️</button><button class="danger small" onclick="deleteInspection(${i})">🗑️</button></div>
-<div class="card"><h2>${esc(x.make)} ${esc(x.model)}</h2><div class="muted">${esc(x.plate)} · ${esc(x.datetime)}</div><p><b>Werkstatt:</b> ${esc(x.workshopName||'—')} ${w?.email?'· ✉️ '+esc(w.email):''}</p><p><b>Schadensart:</b> ${esc(x.damage||'—')}</p><p><b>Beschreibung:</b><br>${esc(x.desc||'—')}</p></div>
+<div class="card"><h2>${esc(x.make)} ${esc(x.model)}</h2><div class="muted"><b>Gutachten-Nr.:</b> ${esc(x.gutachtenNr||'—')} · ${esc(x.plate)} · ${esc(x.datetime)}</div><div class="report-actions"><button class="primary" onclick="createReport(${i})">📄 Gutachten / PDF erstellen</button></div><p><b>Werkstatt:</b> ${esc(x.workshopName||'—')} ${w?.email?'· ✉️ '+esc(w.email):''}</p><p><b>Schadensart:</b> ${esc(x.damage||'—')}</p><p><b>Beschreibung:</b><br>${esc(x.desc||'—')}</p></div>
 <div class="card"><h3>🚗 Fahrzeug</h3><p>FIN: ${esc(x.vin||'—')}<br>Baujahr: ${esc(x.year||'—')} · KM: ${esc(x.km||'—')} · Tank: ${esc(x.fuel||'—')}%</p></div>
 <div class="card"><h3>⚠️ Bauteile / Schäden</h3>
 ${(Array.isArray(x.damageItems)?x.damageItems:loadDamageItems(x)).map(d=>`<div class="damage-item"><div class="damage-head"><strong>🔧 ${esc(d.part)}</strong></div><div class="damage-grid"><div><span class="muted">Maßnahme</span><br><span class="pill">${esc(d.action||'—')}</span></div><div><span class="muted">Schadensbild</span><br><span class="pill">${esc(d.type||'—')}</span></div><div><span class="muted">Lackierung</span><br><span class="pill">${esc(d.paint||'—')}</span></div><div><span class="muted">Bemerkung</span><br>${esc(d.note||'—')}</div></div></div>`).join('')||'<div class="muted">Keine Bauteile erfasst.</div>'}
@@ -237,6 +244,32 @@ ${(Array.isArray(x.damageItems)?x.damageItems:loadDamageItems(x)).map(d=>`<div c
 <div class="card"><h3>📸 Fotos nach Bereich (${normalizePhotos(x.photos).length})</h3>${Object.entries(photosByCategory(x.photos)).map(([cat,arr])=>`<div class="card" style="padding:10px"><h3 style="margin:4px 0 8px">${esc(cat)} (${arr.length})</h3><div class="photoGrid">${arr.map(p=>`<div><img src="${p.src}" onclick="openPhoto('${p.src}')"><button class="secondary small" style="width:100%;margin-top:3px" onclick="saveToPhonePhotos('${p.src}','${esc(p.category)}')">💾 In Fotos speichern</button></div>`).join('')}</div></div>`).join('')||'<div class="muted">Keine Fotos.</div>'}</div>
 <div class="card"><h3>📝 Notizen</h3><p>${esc(x.notes||'—')}</p></div>`;
 }
+function createReport(i){
+  const x=db.inspections[i], w=x.workshopIndex!=null?db.workshops[x.workshopIndex]:null;
+  const damages=Array.isArray(x.damageItems)?x.damageItems:loadDamageItems(x);
+  const photos=normalizePhotos(x.photos);
+  const workTotal=(+x.hs||0)*(+x.rs||0)+(+x.hl||0)*(+x.rl||0)+(+x.hm||0)*(+x.rm||0);
+  const escR=(v='')=>esc(v).replace(/\n/g,'<br>');
+  const photosHtml=photos.length?photos.map(p=>`<div><img src="${p.src}"><div style="font-size:9px;margin-top:2px">${esc(p.category||'Foto')}</div></div>`).join(''):'<span class="muted">Keine Fotos vorhanden.</span>';
+  const damageRows=damages.length?damages.map(d=>`<tr><td>${esc(d.part)}</td><td>${esc(d.action||'—')}</td><td>${esc(d.type||'—')}</td><td>${esc(d.paint||'—')}</td><td>${esc(d.note||'—')}</td></tr>`).join(''):'<tr><td colspan="5">Keine Schäden/Bauteile erfasst.</td></tr>';
+  const total=workTotal.toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const report=window.open('','_blank');
+  if(!report){alert('Bitte Pop-ups für die BesichtigungsApp erlauben.');return;}
+  report.document.write(`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gutachten ${esc(x.gutachtenNr||'')}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#111827;margin:0;padding:22px;font-size:12px}.report-head{display:flex;justify-content:space-between;border-bottom:3px solid #111827;padding-bottom:12px;margin-bottom:16px}.report-logo{font-size:22px;font-weight:800}.report-meta{text-align:right}.section{border:1px solid #d1d5db;border-radius:8px;padding:10px;margin:10px 0;break-inside:avoid}.section h3{margin:0 0 7px;font-size:15px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.field b{display:block;font-size:10px;color:#6b7280;text-transform:uppercase}.field{padding:3px 0}.table{width:100%;border-collapse:collapse}.table th,.table td{border:1px solid #d1d5db;padding:5px;text-align:left;vertical-align:top}.table th{background:#f3f4f6}.photos{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.photos img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid #d1d5db;border-radius:4px}.sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:35px}.sign div{border-top:1px solid #6b7280;padding-top:5px}@media print{body{padding:10mm}.no-print{display:none}}button{padding:10px 14px;border:0;border-radius:8px;background:#111827;color:#fff;font-weight:700}</style></head><body>
+<div class="no-print" style="margin-bottom:12px"><button onclick="window.print()">🖨️ Drucken / Als PDF sichern</button></div>
+<div class="report-head"><div><div class="report-logo">BesichtigungsApp</div><div>Fahrzeugschadengutachten</div></div><div class="report-meta"><b>Gutachten-Nr.</b><br>${esc(x.gutachtenNr||'—')}<br><br><b>Besichtigungsdatum</b><br>${esc(x.datetime||'—')}</div></div>
+<div class="section"><h3>1. Auftraggeber / Werkstatt</h3><div class="grid"><div class="field"><b>Werkstatt</b>${esc(w?.name||x.workshopName||'—')}</div><div class="field"><b>Ansprechpartner</b>${esc(w?.contact||'—')}</div><div class="field"><b>Adresse</b>${esc(w?.address||'—')}</div><div class="field"><b>Kontakt</b>${esc(w?.phone||'—')} ${w?.email?' · '+esc(w.email):''}</div></div></div>
+<div class="section"><h3>2. Fahrzeugdaten</h3><div class="grid"><div class="field"><b>Kennzeichen</b>${esc(x.plate||'—')}</div><div class="field"><b>Marke / Modell</b>${esc(x.make||'—')} ${esc(x.model||'')}</div><div class="field"><b>Baujahr</b>${esc(x.year||'—')}</div><div class="field"><b>FIN</b>${esc(x.vin||'—')}</div><div class="field"><b>Kilometerstand</b>${esc(x.km||'—')} km</div><div class="field"><b>Tankfüllstand</b>${esc(x.fuel||'—')} %</div></div></div>
+<div class="section"><h3>3. Schaden / Feststellungen</h3><div class="field"><b>Schadensart</b>${esc(x.damage||'—')}</div><div class="field"><b>Schadensbeschreibung</b>${escR(x.desc||'—')}</div><table class="table"><thead><tr><th>Bauteil</th><th>Maßnahme</th><th>Schadensbild</th><th>Lackierung</th><th>Bemerkung</th></tr></thead><tbody>${damageRows}</tbody></table></div>
+<div class="section"><h3>4. Fahrzeugzustand / Reifen</h3><table class="table"><tr><th>Profiltiefe VL</th><th>VR</th><th>HL</th><th>HR</th></tr><tr><td>${esc(x.tvl||'—')} mm</td><td>${esc(x.tvr||'—')} mm</td><td>${esc(x.thl||'—')} mm</td><td>${esc(x.thr||'—')} mm</td></tr></table><div class="grid"><div class="field"><b>Reifengröße</b>${esc(x.tsize||'—')}</div><div class="field"><b>Saison</b>${esc(x.tseason||'—')}</div><div class="field"><b>Marke</b>${esc(x.tbrand||'—')}</div><div class="field"><b>DOT</b>${esc(x.tdot||'—')}</div><div class="field"><b>Reifen-/Felgenschäden</b>${esc(x.tissues||'—')}</div><div class="field"><b>Bemerkungen Fahrzeugzustand</b>${esc(x.statusnote||'—')}</div></div></div>
+<div class="section"><h3>5. Arbeitsaufwand / Kosten</h3><table class="table"><tr><th>Bereich</th><th>Arbeitszeit</th><th>Stundensatz</th><th>Betrag</th></tr><tr><td>Spengler</td><td>${esc(x.hs||0)} h</td><td>€ ${esc(x.rs||0)}</td><td>€ ${((+x.hs||0)*(+x.rs||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</td></tr><tr><td>Lackierer</td><td>${esc(x.hl||0)} h</td><td>€ ${esc(x.rl||0)}</td><td>€ ${((+x.hl||0)*(+x.rl||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</td></tr><tr><td>Mechanik</td><td>${esc(x.hm||0)} h</td><td>€ ${esc(x.rm||0)}</td><td>€ ${((+x.hm||0)*(+x.rm||0)).toLocaleString('de-AT',{minimumFractionDigits:2})}</td></tr><tr><th colspan="3" style="text-align:right">Arbeitskosten gesamt</th><th>€ ${total}</th></tr></table></div>
+<div class="section"><h3>6. Fotodokumentation (${photos.length} Fotos)</h3><div class="photos">${photosHtml}</div></div>
+<div class="section"><h3>7. Notizen</h3>${escR(x.notes||'—')}</div>
+<div class="sign"><div>Unterschrift / Sachverständiger</div><div>Ort / Datum</div></div>
+</body></html>`);
+  report.document.close();
+}
+
 function speak(id){
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("Spracheingabe wird von diesem Browser nicht unterstützt.");return}
 let r=new SR();r.lang='de-AT';r.interimResults=false;r.onresult=e=>{document.getElementById(id).value+=(document.getElementById(id).value?' ':'')+e.results[0][0].transcript};r.start();

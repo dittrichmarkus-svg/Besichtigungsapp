@@ -1,3 +1,8 @@
-BesichtigungsApp V3.4
+BesichtigungsApp V3.6
 
-Neu: Pro Bauteil im Fahrzeugzustand kann jetzt nach dem Auswählen zwischen Reparieren und Ersetzen gewählt werden.
+Neu:
+- Gutachten-Nummer je Besichtigung, automatisch vorgeschlagen und editierbar.
+- Strukturierte Gutachtenansicht mit Fahrzeug-, Werkstatt-, Schaden-, Reifen- und Kostendaten.
+- Druck-/PDF-Ausgabe als übersichtliches Fahrzeugschadengutachten mit Schadentabelle und Fotodokumentation.
+- PDF-Ausgabe ist für iPhone/Safari über „Drucken / Als PDF sichern“ vorgesehen.
+- Bauteile können mit Maßnahme, Schadensbild, Lackierung und Bemerkung erfasst werden.
